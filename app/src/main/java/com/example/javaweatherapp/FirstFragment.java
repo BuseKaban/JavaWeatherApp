@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -14,7 +15,15 @@ import com.example.javaweatherapp.databinding.FragmentFirstBinding;
 
 public class FirstFragment extends Fragment {
 
+
+    TextView showCountTextView;
     private FragmentFirstBinding binding;
+    private void countMe(View view){
+        String countString = showCountTextView.getText().toString();
+        Integer count = Integer.parseInt(countString);
+        count++;
+        showCountTextView.setText(count.toString());
+    }
 
     @Override
     public View onCreateView(
@@ -23,6 +32,7 @@ public class FirstFragment extends Fragment {
     ) {
 
         binding = FragmentFirstBinding.inflate(inflater, container, false);
+        showCountTextView = binding.textviewFirst;
         return binding.getRoot();
 
     }
@@ -43,6 +53,13 @@ public class FirstFragment extends Fragment {
             public void onClick(View view) {
                 Toast myToast = Toast.makeText(getActivity(), "Hello toast!", Toast.LENGTH_SHORT);
                 myToast.show();
+            }
+        });
+
+        binding.countButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                countMe(view);
             }
         });
     }
