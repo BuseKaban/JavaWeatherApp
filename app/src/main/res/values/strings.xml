@@ -11,4 +11,18 @@
     <string name="random_heading">Here is a random number between 0 and %d.</string>
     <string name="toast_button_text">Toast</string>
     <string name="count_button_text">Count</string>
+    <string name="condition">Condition</string>
+    <string name="wind">Wind</string>
+    <string name="humidity">Humidity</string>
+
+    <string-array name="city_array">
+        <item>Istanbul</item>
+        <item>Ankara</item>
+        <item>Izmir</item>
+        <item>Mars</item>
+        <item>Jupiter</item>
+        <item>Saturn</item>
+        <item>Uranus</item>
+        <item>Neptune</item>
+    </string-array>
 </resources>

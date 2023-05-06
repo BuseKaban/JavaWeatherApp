@@ -33,6 +33,18 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/textview_header" />
 
+    <Button
+        android:id="@+id/button_second2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Get Data"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.501"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button_second"
+        app:layout_constraintVertical_bias="0.119" />
+
     <TextView
         android:id="@+id/textview_random"
         android:layout_width="wrap_content"
