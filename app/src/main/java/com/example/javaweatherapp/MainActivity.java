@@ -18,6 +18,8 @@ import com.example.javaweatherapp.databinding.ActivityMainBinding;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import org.chromium.net.CronetEngine;
+
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
@@ -26,6 +28,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        CronetEngine.Builder myBuilder = new CronetEngine.Builder(getBaseContext());
+        CronetEngine engine = myBuilder.build();
+        WeatherApi.SetEngine(engine);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());

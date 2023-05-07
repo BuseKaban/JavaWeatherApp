@@ -37,119 +37,22 @@ import java.nio.channels.WritableByteChannel;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+
 public class FirstFragment extends Fragment {
     private FragmentFirstBinding binding;
-    private CronetEngine engine;
-
+    String selectedCityName;
 
     @Override
     public View onCreateView(
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-        CronetEngine.Builder myBuilder = new CronetEngine.Builder(requireContext());
-        engine = myBuilder.build();
         binding = FragmentFirstBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        UrlRequest.Callback callback = new UrlRequest.Callback() {
-            private ByteArrayOutputStream mBytesReceived = new ByteArrayOutputStream();
-            private WritableByteChannel mReceiveChannel = Channels.newChannel(mBytesReceived);
-
-            @Override
-            public void onRedirectReceived(UrlRequest urlRequest, UrlResponseInfo urlResponseInfo, String s) throws Exception {
-                Log.i("TAG", "onRedirectReceived");
-                urlRequest.followRedirect();
-            }
-
-            @Override
-            public void onResponseStarted(UrlRequest urlRequest, UrlResponseInfo urlResponseInfo) throws Exception {
-                Log.i("TAG", "onResponseStarted");
-                urlRequest.read(ByteBuffer.allocateDirect(32 * 1024));
-                mBytesReceived.reset();
-            }
-
-            @Override
-            public void onReadCompleted(UrlRequest urlRequest, UrlResponseInfo urlResponseInfo, ByteBuffer byteBuffer) throws Exception {
-                Log.i("TAG", "onReadCompleted");
-                byteBuffer.flip();
-
-                try {
-                    mReceiveChannel.write(byteBuffer);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                byteBuffer.clear();
-                urlRequest.read(byteBuffer);
-            }
-
-            @Override
-            public void onSucceeded(UrlRequest urlRequest, UrlResponseInfo urlResponseInfo) {
-                final String receivedData = mBytesReceived.toString();
-
-                try {
-                    JSONObject geoObject = new JSONArray(receivedData).getJSONObject(0);
-                    String lat = geoObject.getString("lat");
-                    String lon = geoObject.getString("lon");
-
-                    Executor executor = Executors.newSingleThreadExecutor();
-                    Uri.Builder uriBuilder = Uri.parse("https://api.openweathermap.org/data/2.5/weather").buildUpon();
-                    uriBuilder.appendQueryParameter("lat", lat);
-                    uriBuilder.appendQueryParameter("lon", lon);
-                    uriBuilder.appendQueryParameter("appid", "83299305a9929e9e6887defab131cda8");
-                    String fullUrl = uriBuilder.build().toString();
-
-                    Log.i("URL", fullUrl);
-                    UrlRequest.Builder requestBuilder = engine.newUrlRequestBuilder(
-                            fullUrl,
-                            new MyUrlRequestCallback(new WeatherDataCallback() {
-                                @Override
-                                public void onWeatherDataReceived(String data) {
-                                    try {
-                                        JSONObject weatherObject = new JSONObject(data);
-                                        double temp = weatherObject.getJSONObject("main").getDouble("temp") - 273.15;
-                                        double humidity = weatherObject.getJSONObject("main").getInt("humidity");
-                                        double wind = weatherObject.getJSONObject("wind").getDouble("speed");
-                                        String condition = weatherObject.getJSONArray("weather").getJSONObject(0).getString("main");
-
-                                        binding.textView2.setText(String.format("%.0f",temp)+ " °C");
-
-                                        binding.humidityValue.setText(String.format("%.0f",humidity)+ "%");
-                                        binding.windValue.setText(String.format("%.2f",wind)+ " km/h");
-                                        binding.conditionValue.setText(condition);
-
-
-                                    } catch (JSONException e) {
-                                        Log.e("JSON EXCEPTION", e.getMessage());
-                                    }
-
-                                }
-                            }),
-                            executor);
-                    UrlRequest request = requestBuilder.build();
-                    request.start();
-                } catch (JSONException e) {
-                    Log.e("JSON EXCEPTION", e.getMessage());
-                }
-            }
-
-            @Override
-            public void onFailed(UrlRequest urlRequest, UrlResponseInfo urlResponseInfo, CronetException e) {
-                Log.i("TAG", "onFailed");
-                Log.i("TAG", "error is: %s" + e.getMessage());
-
-                Handler handler = new Handler(Looper.getMainLooper());
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(getContext(), "onFailed", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-        };
 
         Spinner spinner = binding.spinner;
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getContext(),
@@ -160,24 +63,24 @@ public class FirstFragment extends Fragment {
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String element = parent.getSelectedItem().toString();
+                selectedCityName = parent.getSelectedItem().toString();
 
-                Executor executor = Executors.newSingleThreadExecutor();
+                WeatherApi.GetInstance().GetCityWeather(selectedCityName, new MyUrlRequestCallback(data -> {
+                    try {
+                        JSONObject weatherObject = new JSONObject(data);
+                        double temp = weatherObject.getJSONObject("main").getDouble("temp") - 273.15;
+                        double humidity = weatherObject.getJSONObject("main").getInt("humidity");
+                        double wind = weatherObject.getJSONObject("wind").getDouble("speed");
+                        String condition = weatherObject.getJSONArray("weather").getJSONObject(0).getString("main");
 
-                Uri.Builder uriBuilder = Uri.parse("https://api.openweathermap.org/geo/1.0/direct").buildUpon();
-                uriBuilder.appendQueryParameter("q", element);
-                uriBuilder.appendQueryParameter("limit", "1");
-                uriBuilder.appendQueryParameter("appid", "83299305a9929e9e6887defab131cda8");
-                String fullUrl = uriBuilder.build().toString();
-
-                UrlRequest.Builder requestBuilder = engine.newUrlRequestBuilder(
-                        fullUrl,
-                        callback,
-                        executor);
-
-                UrlRequest request = requestBuilder.build();
-
-                request.start();
+                        binding.textView2.setText(String.format("%.0f",temp)+ " °C");
+                        binding.humidityValue.setText(String.format("%.0f",humidity)+ "%");
+                        binding.windValue.setText(String.format("%.2f",wind)+ " km/h");
+                        binding.conditionValue.setText(condition);
+                    } catch (JSONException e) {
+                        Log.e("JSON EXCEPTION", e.getMessage());
+                    }
+                }));
             }
 
             @Override
@@ -186,7 +89,17 @@ public class FirstFragment extends Fragment {
             }
         });
 
+        binding.detailButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FirstFragmentDirections.ActionFirstFragmentToSecondFragment action = FirstFragmentDirections.actionFirstFragmentToSecondFragment(selectedCityName);
+                NavHostFragment.findNavController(FirstFragment.this)
+                        .navigate(action);
+            }
+        });
+
     }
+
 
 
     @Override
