@@ -69,14 +69,10 @@ public class FirstFragment extends Fragment {
                     try {
                         JSONObject weatherObject = new JSONObject(data);
                         double temp = weatherObject.getJSONObject("main").getDouble("temp") - 273.15;
-                        double humidity = weatherObject.getJSONObject("main").getInt("humidity");
-                        double wind = weatherObject.getJSONObject("wind").getDouble("speed");
-                        String condition = weatherObject.getJSONArray("weather").getJSONObject(0).getString("main");
-
+                        double tempMin = weatherObject.getJSONObject("main").getDouble("temp_min") - 273.15;
+                        double tempMax = weatherObject.getJSONObject("main").getDouble("temp_max") - 273.15;
                         binding.textView2.setText(String.format("%.0f",temp)+ " °C");
-                        binding.humidityValue.setText(String.format("%.0f",humidity)+ "%");
-                        binding.windValue.setText(String.format("%.2f",wind)+ " km/h");
-                        binding.conditionValue.setText(condition);
+                        binding.minMaxTempTextView.setText(String.format("%.0f °C - %.0f °C",tempMin, tempMax));
                     } catch (JSONException e) {
                         Log.e("JSON EXCEPTION", e.getMessage());
                     }
